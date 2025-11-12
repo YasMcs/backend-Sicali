@@ -1,10 +1,10 @@
 plugins {
     id 'java'
-    //id ''
+    id 'com.github.johnrengelman.shadow' version '8.1.1' // Plugin para crear un JAR ejecutable con dependencias
 }
 
-group = 'org.example'
-version = '1.0-SNAPSHOT'
+group = 'org.sicali'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -13,6 +13,8 @@ repositories {
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+
+    // Dependencias del proyecto
     implementation("io.javalin:javalin-bundle:6.7.0")
     implementation("com.mysql:mysql-connector-j:9.3.0")
     implementation("com.zaxxer:HikariCP:5.0.1")
@@ -27,10 +29,22 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-/*
-shadowJar{
-    manifest{
-        atributes('Main_class':'')
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'org.sicali.Main' // tu clase principal
+        )
     }
 }
-*/
+
+shadowJar {
+    manifest {
+        attributes(
+                'Main-Class': 'org.sicali.Main'
+        )
+    }
+    archiveBaseName.set('sicali')
+    archiveVersion.set('1.0')
+    archiveClassifier.set('')
+}

@@ -1,80 +1,89 @@
 package org.sicali.controllers;
 
+import org.sicali.config.DatabaseConfig;
 import org.sicali.models.GrupoAsignatura;
 import org.sicali.services.GrupoAsignaturaService;
+import io.javalin.http.Context;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class GrupoAsignaturaController {
-    private GrupoAsignaturaService grupoAsignaturaService;
 
-    public GrupoAsignaturaController(Connection connection) {
-        this.grupoAsignaturaService = new GrupoAsignaturaService(connection);
-    }
-
-    public GrupoAsignatura crearGrupoAsignatura(GrupoAsignatura grupoAsignatura) {
-        try {
-            return grupoAsignaturaService.crearGrupoAsignatura(grupoAsignatura);
-        } catch (SQLException e) {
-            System.err.println("Error al crear grupo-asignatura: " + e.getMessage());
-            return null;
+    public static void obtenerTodos(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            List<GrupoAsignatura> grupoAsignaturas = service.obtenerTodosGrupoAsignaturas();
+            ctx.json(grupoAsignaturas);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public GrupoAsignatura obtenerGrupoAsignaturaPorId(int id) {
-        try {
-            return grupoAsignaturaService.obtenerGrupoAsignaturaPorId(id);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener grupo-asignatura: " + e.getMessage());
-            return null;
+    public static void obtenerPorId(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            GrupoAsignatura grupoAsignatura = service.obtenerGrupoAsignaturaPorId(id);
+            ctx.json(grupoAsignatura);
+        } catch (Exception e) {
+            ctx.status(404).json("Error: " + e.getMessage());
         }
     }
 
-    public List<GrupoAsignatura> obtenerTodosGrupoAsignaturas() {
-        try {
-            return grupoAsignaturaService.obtenerTodosGrupoAsignaturas();
-        } catch (SQLException e) {
-            System.err.println("Error al obtener grupos-asignaturas: " + e.getMessage());
-            return null;
+    public static void crear(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            GrupoAsignatura grupoAsignatura = ctx.bodyAsClass(GrupoAsignatura.class);
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            GrupoAsignatura nuevoGrupoAsignatura = service.crearGrupoAsignatura(grupoAsignatura);
+            ctx.status(201).json(nuevoGrupoAsignatura);
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean actualizarGrupoAsignatura(GrupoAsignatura grupoAsignatura) {
-        try {
-            grupoAsignaturaService.actualizarGrupoAsignatura(grupoAsignatura);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar grupo-asignatura: " + e.getMessage());
-            return false;
+    public static void actualizar(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            GrupoAsignatura grupoAsignatura = ctx.bodyAsClass(GrupoAsignatura.class);
+            grupoAsignatura.setIdGrupoAsignatura(id);
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            service.actualizarGrupoAsignatura(grupoAsignatura);
+            ctx.json("Grupo-Asignatura actualizado");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean eliminarGrupoAsignatura(int id) {
-        try {
-            grupoAsignaturaService.eliminarGrupoAsignatura(id);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar grupo-asignatura: " + e.getMessage());
-            return false;
+    public static void eliminar(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            service.eliminarGrupoAsignatura(id);
+            ctx.json("Grupo-Asignatura eliminado");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public List<GrupoAsignatura> obtenerAsignaturasPorGrupo(int idGrupo) {
-        try {
-            return grupoAsignaturaService.obtenerAsignaturasPorGrupo(idGrupo);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener asignaturas por grupo: " + e.getMessage());
-            return null;
+    public static void obtenerAsignaturasPorGrupo(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idGrupo = Integer.parseInt(ctx.pathParam("idGrupo"));
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            List<GrupoAsignatura> grupoAsignaturas = service.obtenerAsignaturasPorGrupo(idGrupo);
+            ctx.json(grupoAsignaturas);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public List<GrupoAsignatura> obtenerGruposPorAsignatura(int idAsignatura) {
-        try {
-            return grupoAsignaturaService.obtenerGruposPorAsignatura(idAsignatura);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener grupos por asignatura: " + e.getMessage());
-            return null;
+    public static void obtenerGruposPorAsignatura(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idAsignatura = Integer.parseInt(ctx.pathParam("idAsignatura"));
+            GrupoAsignaturaService service = new GrupoAsignaturaService(conn);
+            List<GrupoAsignatura> grupoAsignaturas = service.obtenerGruposPorAsignatura(idAsignatura);
+            ctx.json(grupoAsignaturas);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 }

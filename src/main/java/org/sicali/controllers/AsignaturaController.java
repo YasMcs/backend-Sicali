@@ -1,20 +1,15 @@
 package org.sicali.controllers;
-import org.sicali.config.DatabaseConfig;
 
+import org.sicali.config.DatabaseConfig;
 import org.sicali.models.Asignatura;
 import org.sicali.services.AsignaturaService;
 import io.javalin.http.Context;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class AsignaturaController {
-    private final AsignaturaService asignaturaService;
 
-    public AsignaturaController(Connection connection) {
-        this.asignaturaService = new AsignaturaService(connection);
-    }
-    private static void obtenerTodas(Context ctx) {
+    public static void obtenerTodas(Context ctx) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             AsignaturaService service = new AsignaturaService(conn);
             List<Asignatura> asignaturas = service.obtenerTodasAsignaturas();
@@ -24,7 +19,7 @@ public class AsignaturaController {
         }
     }
 
-    private static void obtenerPorId(Context ctx) {
+    public static void obtenerPorId(Context ctx) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             int id = Integer.parseInt(ctx.pathParam("id"));
             AsignaturaService service = new AsignaturaService(conn);
@@ -35,7 +30,7 @@ public class AsignaturaController {
         }
     }
 
-    private static void crear(Context ctx) {
+    public static void crear(Context ctx) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             Asignatura asignatura = ctx.bodyAsClass(Asignatura.class);
             AsignaturaService service = new AsignaturaService(conn);
@@ -46,12 +41,11 @@ public class AsignaturaController {
         }
     }
 
-    private static void actualizar(Context ctx) {
+    public static void actualizar(Context ctx) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             int id = Integer.parseInt(ctx.pathParam("id"));
             Asignatura asignatura = ctx.bodyAsClass(Asignatura.class);
             asignatura.setIdAsignatura(id);
-
             AsignaturaService service = new AsignaturaService(conn);
             service.actualizarAsignatura(asignatura);
             ctx.json("Asignatura actualizada");
@@ -60,7 +54,7 @@ public class AsignaturaController {
         }
     }
 
-    private static void eliminar(Context ctx) {
+    public static void eliminar(Context ctx) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             int id = Integer.parseInt(ctx.pathParam("id"));
             AsignaturaService service = new AsignaturaService(conn);

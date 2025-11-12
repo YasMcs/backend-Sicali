@@ -1,71 +1,78 @@
 package org.sicali.controllers;
 
+import org.sicali.config.DatabaseConfig;
 import org.sicali.models.Periodo;
 import org.sicali.services.PeriodoService;
+import io.javalin.http.Context;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
 public class PeriodoController {
-    private PeriodoService periodoService;
 
-    public PeriodoController(Connection connection) {
-        this.periodoService = new PeriodoService(connection);
-    }
-
-    public Periodo crearPeriodo(Periodo periodo) {
-        try {
-            return periodoService.crearPeriodo(periodo);
-        } catch (SQLException e) {
-            System.err.println("Error al crear periodo: " + e.getMessage());
-            return null;
+    public static void obtenerTodos(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            PeriodoService service = new PeriodoService(conn);
+            List<Periodo> periodos = service.obtenerTodosPeriodos();
+            ctx.json(periodos);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public Periodo obtenerPeriodoPorId(int id) {
-        try {
-            return periodoService.obtenerPeriodoPorId(id);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener periodo: " + e.getMessage());
-            return null;
+    public static void obtenerPorId(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            PeriodoService service = new PeriodoService(conn);
+            Periodo periodo = service.obtenerPeriodoPorId(id);
+            ctx.json(periodo);
+        } catch (Exception e) {
+            ctx.status(404).json("Error: " + e.getMessage());
         }
     }
 
-    public List<Periodo> obtenerTodosPeriodos() {
-        try {
-            return periodoService.obtenerTodosPeriodos();
-        } catch (SQLException e) {
-            System.err.println("Error al obtener periodos: " + e.getMessage());
-            return null;
+    public static void crear(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            Periodo periodo = ctx.bodyAsClass(Periodo.class);
+            PeriodoService service = new PeriodoService(conn);
+            Periodo nuevoPeriodo = service.crearPeriodo(periodo);
+            ctx.status(201).json(nuevoPeriodo);
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean actualizarPeriodo(Periodo periodo) {
-        try {
-            periodoService.actualizarPeriodo(periodo);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar periodo: " + e.getMessage());
-            return false;
+    public static void actualizar(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            Periodo periodo = ctx.bodyAsClass(Periodo.class);
+            periodo.setIdPeriodo(id);
+            PeriodoService service = new PeriodoService(conn);
+            service.actualizarPeriodo(periodo);
+            ctx.json("Periodo actualizado");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean eliminarPeriodo(int id) {
-        try {
-            periodoService.eliminarPeriodo(id);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar periodo: " + e.getMessage());
-            return false;
+    public static void eliminar(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int id = Integer.parseInt(ctx.pathParam("id"));
+            PeriodoService service = new PeriodoService(conn);
+            service.eliminarPeriodo(id);
+            ctx.json("Periodo eliminado");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public List<Periodo> obtenerPeriodosPorCiclo(int idCiclo) {
-        try {
-            return periodoService.obtenerPeriodosPorCiclo(idCiclo);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener periodos por ciclo: " + e.getMessage());
-            return null;
+    public static void obtenerPorCiclo(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idCiclo = Integer.parseInt(ctx.pathParam("idCiclo"));
+            PeriodoService service = new PeriodoService(conn);
+            List<Periodo> periodos = service.obtenerPeriodosPorCiclo(idCiclo);
+            ctx.json(periodos);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 }

@@ -1,89 +1,104 @@
 package org.sicali.controllers;
 
+import org.sicali.config.DatabaseConfig;
 import org.sicali.models.EstudianteGrupo;
 import org.sicali.services.EstudianteGrupoService;
+import io.javalin.http.Context;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class EstudianteGrupoController {
-    private EstudianteGrupoService estudianteGrupoService;
 
-    public EstudianteGrupoController(Connection connection) {
-        this.estudianteGrupoService = new EstudianteGrupoService(connection);
-    }
-
-    public EstudianteGrupo crearEstudianteGrupo(EstudianteGrupo estudianteGrupo) {
-        try {
-            return estudianteGrupoService.crearEstudianteGrupo(estudianteGrupo);
-        } catch (SQLException e) {
-            System.err.println("Error al crear estudiante-grupo: " + e.getMessage());
-            return null;
+    public static void obtenerTodos(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            List<EstudianteGrupo> estudiantesGrupos = service.obtenerTodosEstudiantesGrupos();
+            ctx.json(estudiantesGrupos);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public EstudianteGrupo obtenerEstudianteGrupoPorIds(int idGrupoAsignatura, int idEstudiante) {
-        try {
-            return estudianteGrupoService.obtenerEstudianteGrupoPorIds(idGrupoAsignatura, idEstudiante);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener estudiante-grupo: " + e.getMessage());
-            return null;
+    public static void obtenerPorIds(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idGrupoAsignatura = Integer.parseInt(ctx.pathParam("idGrupoAsignatura"));
+            int idEstudiante = Integer.parseInt(ctx.pathParam("idEstudiante"));
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            EstudianteGrupo estudianteGrupo = service.obtenerEstudianteGrupoPorIds(idGrupoAsignatura, idEstudiante);
+            ctx.json(estudianteGrupo);
+        } catch (Exception e) {
+            ctx.status(404).json("Error: " + e.getMessage());
         }
     }
 
-    public List<EstudianteGrupo> obtenerTodosEstudiantesGrupos() {
-        try {
-            return estudianteGrupoService.obtenerTodosEstudiantesGrupos();
-        } catch (SQLException e) {
-            System.err.println("Error al obtener estudiantes-grupos: " + e.getMessage());
-            return null;
+    public static void crear(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            EstudianteGrupo estudianteGrupo = ctx.bodyAsClass(EstudianteGrupo.class);
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            EstudianteGrupo nuevoEstudianteGrupo = service.crearEstudianteGrupo(estudianteGrupo);
+            ctx.status(201).json(nuevoEstudianteGrupo);
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean actualizarCalificacion(int idGrupoAsignatura, int idEstudiante, int nuevaCalificacion) {
-        try {
-            estudianteGrupoService.actualizarCalificacion(idGrupoAsignatura, idEstudiante, nuevaCalificacion);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar calificación: " + e.getMessage());
-            return false;
+    public static void actualizarCalificacion(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idGrupoAsignatura = Integer.parseInt(ctx.pathParam("idGrupoAsignatura"));
+            int idEstudiante = Integer.parseInt(ctx.pathParam("idEstudiante"));
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            int nuevaCalificacion = ((Number) body.get("calificacion")).intValue();
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            service.actualizarCalificacion(idGrupoAsignatura, idEstudiante, nuevaCalificacion);
+            ctx.json("Calificación actualizada");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public boolean eliminarEstudianteGrupo(int idGrupoAsignatura, int idEstudiante) {
-        try {
-            estudianteGrupoService.eliminarEstudianteGrupo(idGrupoAsignatura, idEstudiante);
-            return true;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar estudiante-grupo: " + e.getMessage());
-            return false;
+    public static void eliminar(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idGrupoAsignatura = Integer.parseInt(ctx.pathParam("idGrupoAsignatura"));
+            int idEstudiante = Integer.parseInt(ctx.pathParam("idEstudiante"));
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            service.eliminarEstudianteGrupo(idGrupoAsignatura, idEstudiante);
+            ctx.json("Estudiante-Grupo eliminado");
+        } catch (Exception e) {
+            ctx.status(400).json("Error: " + e.getMessage());
         }
     }
 
-    public List<EstudianteGrupo> obtenerEstudiantesPorGrupoAsignatura(int idGrupoAsignatura) {
-        try {
-            return estudianteGrupoService.obtenerEstudiantesPorGrupoAsignatura(idGrupoAsignatura);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener estudiantes por grupo-asignatura: " + e.getMessage());
-            return null;
+    public static void obtenerEstudiantesPorGrupoAsignatura(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idGrupoAsignatura = Integer.parseInt(ctx.pathParam("idGrupoAsignatura"));
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            List<EstudianteGrupo> estudiantesGrupos = service.obtenerEstudiantesPorGrupoAsignatura(idGrupoAsignatura);
+            ctx.json(estudiantesGrupos);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public List<EstudianteGrupo> obtenerGruposPorEstudiante(int idEstudiante) {
-        try {
-            return estudianteGrupoService.obtenerGruposPorEstudiante(idEstudiante);
-        } catch (SQLException e) {
-            System.err.println("Error al obtener grupos por estudiante: " + e.getMessage());
-            return null;
+    public static void obtenerGruposPorEstudiante(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idEstudiante = Integer.parseInt(ctx.pathParam("idEstudiante"));
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            List<EstudianteGrupo> estudiantesGrupos = service.obtenerGruposPorEstudiante(idEstudiante);
+            ctx.json(estudiantesGrupos);
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 
-    public Double calcularPromedioEstudiante(int idEstudiante) {
-        try {
-            return estudianteGrupoService.calcularPromedioEstudiante(idEstudiante);
-        } catch (SQLException e) {
-            System.err.println("Error al calcular promedio del estudiante: " + e.getMessage());
-            return null;
+    public static void calcularPromedioEstudiante(Context ctx) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            int idEstudiante = Integer.parseInt(ctx.pathParam("idEstudiante"));
+            EstudianteGrupoService service = new EstudianteGrupoService(conn);
+            double promedio = service.calcularPromedioEstudiante(idEstudiante);
+            ctx.json(Map.of("promedio", promedio));
+        } catch (Exception e) {
+            ctx.status(500).json("Error: " + e.getMessage());
         }
     }
 }
